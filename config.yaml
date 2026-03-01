@@ -1,0 +1,27 @@
+camera:
+  source: 0
+  width: 640
+  height: 480
+
+detector:
+  model: yolo11n.pt
+  confidence: 0.5
+  classes:
+    - person
+    - dog
+    - cat
+    - bird
+
+alerter:
+  cooldown_seconds: 30
+  desktop_notifications: true
+
+display:
+  show_window: true
+  show_fps: true
+  box_color: [0, 255, 0]
+  box_thickness: 2
+
+logging:
+  level: INFO
+  log_file: logs/detections.log
