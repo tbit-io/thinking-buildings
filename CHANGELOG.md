@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.3 (2026-03-02)
+
+### Bug Fixes
+
+- Add actions:write permission for workflow dispatch
+  ([`2d69965`](https://github.com/tbit-io/thinking-buildings/commit/2d699659b47739b1474049dcc74edb70c6b37d03))
+
+
 ## v1.0.2 (2026-03-02)
 
 ### Bug Fixes
