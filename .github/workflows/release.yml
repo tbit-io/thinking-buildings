@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # hatch-vcs needs full history
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -64,7 +64,7 @@ jobs:
           name: windows-installer
           path: dist/ThinkingBuildings-*-setup.exe
 
-  # --- Build Linux AppImage -----------------------------------------------
+  # --- Build Linux tarball ------------------------------------------------
   build-linux:
     needs: test
     runs-on: ubuntu-22.04
@@ -81,8 +81,6 @@ jobs:
         run: |
           pip install -e ".[dev]"
           pip install pyinstaller
-          sudo apt-get update
-          sudo apt-get install -y libfuse2
 
       - name: Get version from tag
         id: version

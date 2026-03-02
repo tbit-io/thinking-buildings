@@ -54,3 +54,16 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
 ignore = ["E501"]
+
+[tool.semantic_release]
+version_toml = []
+version_variables = []
+branch = "master"
+commit_message = "chore(release): v{version}"
+build_command = ""
+upload_to_pypi = false
+
+[tool.semantic_release.commit_parser_options]
+allowed_tags = ["feat", "fix", "perf", "refactor", "build", "chore", "ci", "docs", "style", "test"]
+minor_tags = ["feat"]
+patch_tags = ["fix", "perf", "refactor"]
