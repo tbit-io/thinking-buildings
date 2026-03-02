@@ -65,5 +65,21 @@ jobs:
       - name: Semantic release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: semantic-release version --no-vcs-release
-        # Creates tag only. The release.yml workflow handles builds + GitHub Release.
+        run: semantic-release version
+
+      - name: Check if new version was released
+        id: check
+        run: |
+          if git describe --exact-match HEAD 2>/dev/null; then
+            echo "released=true" >> $GITHUB_OUTPUT
+            echo "tag=$(git describe --exact-match HEAD)" >> $GITHUB_OUTPUT
+          else
+            echo "released=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger release build
+        if: steps.check.outputs.released == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run release.yml --ref ${{ steps.check.outputs.tag }}
