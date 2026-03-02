@@ -4,7 +4,7 @@ import hashlib
 import logging
 import urllib.request
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict
 
 logger = logging.getLogger("thinking_buildings")
 

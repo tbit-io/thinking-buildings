@@ -88,18 +88,18 @@ class TestLandmarksAnomaly:
         # left_eye, right_eye, nose, left_mouth, right_mouth
         kps = [[30, 50], [70, 50], [50, 70], [35, 90], [65, 90]]
         face = self._make_face(kps)
-        assert recognizer._landmarks_anomaly(face) == False
+        assert not recognizer._landmarks_anomaly(face)
 
     def test_asymmetric_landmarks_anomaly(self, recognizer):
         # left eye very far from nose, right eye close — ratio > 2
         kps = [[10, 50], [50, 50], [49, 70], [35, 90], [65, 90]]
         face = self._make_face(kps)
-        assert recognizer._landmarks_anomaly(face) == True
+        assert recognizer._landmarks_anomaly(face)
 
     def test_zero_distance_is_anomaly(self, recognizer):
         kps = [[50, 70], [70, 50], [50, 70], [35, 90], [65, 90]]  # left_eye == nose
         face = self._make_face(kps)
-        assert recognizer._landmarks_anomaly(face) == True
+        assert recognizer._landmarks_anomaly(face)
 
 
 class TestFaceBboxToFrame:

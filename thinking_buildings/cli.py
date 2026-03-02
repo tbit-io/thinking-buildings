@@ -3,19 +3,37 @@
 
 from __future__ import annotations
 
+import argparse
 import time
 
-from thinking_buildings.config import load_config
-from thinking_buildings.logger_setup import setup_logging
-from thinking_buildings.capture import ThreadedCapture
-from thinking_buildings.detector import Detector
-from thinking_buildings.events import EventBus
+from thinking_buildings._version import __version__
 from thinking_buildings.alerter import Alerter
+from thinking_buildings.capture import ThreadedCapture
+from thinking_buildings.config import load_config
+from thinking_buildings.detector import Detector
 from thinking_buildings.display import Display
+from thinking_buildings.events import EventBus
+from thinking_buildings.logger_setup import setup_logging
 
 
 def main() -> None:
-    cfg = load_config()
+    parser = argparse.ArgumentParser(
+        prog="thinking-buildings",
+        description="Building security with ML detection",
+    )
+    parser.add_argument(
+        "--config", "-c",
+        default="config.yaml",
+        help="Path to config file (default: config.yaml)",
+    )
+    parser.add_argument(
+        "--version", "-V",
+        action="version",
+        version=f"%(prog)s {__version__}",
+    )
+    args = parser.parse_args()
+
+    cfg = load_config(args.config)
     logger = setup_logging(cfg.logging)
     logger.info("Starting Thinking Buildings")
 

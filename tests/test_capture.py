@@ -1,12 +1,10 @@
-import threading
 import time
 from unittest.mock import MagicMock
 
 import cv2
 import numpy as np
-import pytest
 
-from thinking_buildings.capture import VideoCapture, ThreadedCapture
+from thinking_buildings.capture import ThreadedCapture, VideoCapture
 from thinking_buildings.config import CameraConfig
 
 

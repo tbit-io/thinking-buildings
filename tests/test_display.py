@@ -1,5 +1,5 @@
-from thinking_buildings.display import Display, COLOR_RED, COLOR_ORANGE, COLOR_GREEN
 from thinking_buildings.config import DisplayConfig
+from thinking_buildings.display import COLOR_GREEN, COLOR_ORANGE, COLOR_RED, Display
 
 
 def _display() -> Display:

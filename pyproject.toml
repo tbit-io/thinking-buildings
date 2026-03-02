@@ -26,6 +26,9 @@ face = [
 gpu = [
     "onnxruntime-gpu>=1.16.0",
 ]
+build = [
+    "pyinstaller>=6.0",
+]
 dev = [
     "thinking-buildings[ultralytics,face]",
     "pytest>=8.0",
@@ -43,3 +46,11 @@ fallback-version = "0.0.0-dev"
 
 [tool.hatch.build.targets.wheel]
 packages = ["thinking_buildings"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]

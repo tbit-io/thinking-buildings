@@ -1,7 +1,4 @@
 import textwrap
-from pathlib import Path
-
-import pytest
 
 from thinking_buildings.config import AppConfig, FaceRecConfig, load_config
 

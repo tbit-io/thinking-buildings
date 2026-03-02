@@ -1,9 +1,8 @@
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from thinking_buildings.model_manager import ensure_model, MODELS_DIR, MODEL_REGISTRY
+from thinking_buildings.model_manager import MODEL_REGISTRY, ensure_model
 
 
 class TestEnsureModel:

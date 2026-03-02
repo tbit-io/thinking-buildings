@@ -1,0 +1,73 @@
+# Thinking Buildings — AppImage configuration
+# Used with appimage-builder to create a single-file Linux distribution.
+#
+# Prerequisites:
+#   1. Build with PyInstaller first:
+#      PROFILE=onnx pyinstaller installer/thinking_buildings.spec
+#   2. Run: appimage-builder --recipe installer/linux/AppImageBuilder.yml
+#
+# Or use the GitHub Actions workflow which handles everything.
+
+version: 1
+
+AppDir:
+  path: ./AppDir
+
+  app_info:
+    id: io.tbit.thinking-buildings
+    name: Thinking Buildings
+    icon: thinking-buildings
+    version: !ENV ${VERSION:-0.0.0-dev}
+    exec: usr/bin/thinking-buildings
+    exec_args: $@
+
+  files:
+    include:
+      - dist/thinking-buildings-onnx/**
+
+  runtime:
+    env:
+      # OpenCV needs these for display
+      DISPLAY: ${DISPLAY}
+      # Camera access
+      LIBVA_DRIVERS_PATH: ${APPDIR}/usr/lib/dri
+
+  after_bundle:
+    # Copy PyInstaller output into AppDir
+    - mkdir -p AppDir/usr/bin
+    - cp -r dist/thinking-buildings-onnx/* AppDir/usr/bin/
+    # Desktop entry
+    - mkdir -p AppDir/usr/share/applications
+    - |
+      cat > AppDir/usr/share/applications/thinking-buildings.desktop << 'DESKTOP'
+      [Desktop Entry]
+      Type=Application
+      Name=Thinking Buildings
+      Comment=Building security with ML detection
+      Exec=thinking-buildings
+      Icon=thinking-buildings
+      Categories=Utility;Security;
+      Terminal=true
+      DESKTOP
+    # Icon placeholder (CI will inject real icon if available)
+    - mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+    - |
+      if [ -f installer/icon.png ]; then
+        cp installer/icon.png AppDir/usr/share/icons/hicolor/256x256/apps/thinking-buildings.png
+      else
+        # Create a minimal 1x1 placeholder so AppImage doesn't fail
+        python3 -c "
+      import struct, zlib
+      def png_1x1():
+          sig = b'\\x89PNG\\r\\n\\x1a\\n'
+          def chunk(t, d): return struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t+d) & 0xffffffff)
+          ihdr = struct.pack('>IIBBBBB', 1, 1, 8, 2, 0, 0, 0)
+          idat = zlib.compress(b'\\x00\\x28\\x28\\x28')
+          return sig + chunk(b'IHDR', ihdr) + chunk(b'IDAT', idat) + chunk(b'IEND', b'')
+      open('AppDir/usr/share/icons/hicolor/256x256/apps/thinking-buildings.png', 'wb').write(png_1x1())
+      "
+      fi
+
+AppImage:
+  arch: x86_64
+  update-information: guess

@@ -38,8 +38,9 @@ class TestUltralyticsBackend:
         assert UltralyticsBackend.priority() == 50
 
     def test_load_and_infer(self):
-        from thinking_buildings.backends.ultralytics_backend import UltralyticsBackend
         import numpy as np
+
+        from thinking_buildings.backends.ultralytics_backend import UltralyticsBackend
 
         backend = UltralyticsBackend()
         with patch("ultralytics.YOLO") as MockYOLO:
@@ -66,8 +67,9 @@ class TestUltralyticsBackend:
             assert dets[0].confidence == 0.9
 
     def test_infer_before_load_raises(self):
-        from thinking_buildings.backends.ultralytics_backend import UltralyticsBackend
         import numpy as np
+
+        from thinking_buildings.backends.ultralytics_backend import UltralyticsBackend
 
         backend = UltralyticsBackend()
         with pytest.raises(RuntimeError, match="Model not loaded"):

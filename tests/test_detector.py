@@ -4,7 +4,6 @@ import numpy as np
 
 from thinking_buildings.backends.base import RawDetection
 from thinking_buildings.config import DetectorConfig
-from thinking_buildings.events import Detection
 
 
 class TestDetector:
