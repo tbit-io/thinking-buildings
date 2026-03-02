@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.2 (2026-03-02)
+
+### Bug Fixes
+
+- Release workflow accepts tag via workflow_dispatch input
+  ([`0913956`](https://github.com/tbit-io/thinking-buildings/commit/0913956d758d2f638a836a60ac841340de2c1e92))
+
+
 ## v1.0.1 (2026-03-02)
 
 ### Bug Fixes
