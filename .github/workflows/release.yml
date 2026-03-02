@@ -5,16 +5,41 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release (e.g. v1.0.0)"
+        required: true
 
 permissions:
   contents: write
 
 jobs:
+  # --- Resolve version ----------------------------------------------------
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      ref: ${{ steps.version.outputs.ref }}
+    steps:
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=${TAG#v}" >> $GITHUB_OUTPUT
+          echo "ref=${TAG}" >> $GITHUB_OUTPUT
+
   # --- Run tests first ---------------------------------------------------
   test:
+    needs: resolve
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -23,11 +48,12 @@ jobs:
 
   # --- Build Windows installer --------------------------------------------
   build-windows:
-    needs: test
+    needs: [resolve, test]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ needs.resolve.outputs.ref }}
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
@@ -38,11 +64,6 @@ jobs:
         run: |
           pip install -e ".[dev]"
           pip install pyinstaller
-
-      - name: Get version from tag
-        id: version
-        shell: bash
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Build with PyInstaller (ONNX profile)
         shell: bash
@@ -57,7 +78,7 @@ jobs:
       - name: Build installer
         shell: cmd
         run: |
-          "C:\Program Files (x86)\NSIS\makensis.exe" /DPRODUCT_VERSION=${{ steps.version.outputs.version }} installer\windows\thinking_buildings.nsi
+          "C:\Program Files (x86)\NSIS\makensis.exe" /DPRODUCT_VERSION=${{ needs.resolve.outputs.version }} installer\windows\thinking_buildings.nsi
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
@@ -67,11 +88,12 @@ jobs:
 
   # --- Build Linux tarball ------------------------------------------------
   build-linux:
-    needs: test
+    needs: [resolve, test]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ needs.resolve.outputs.ref }}
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
@@ -83,10 +105,6 @@ jobs:
           pip install -e ".[dev]"
           pip install pyinstaller
 
-      - name: Get version from tag
-        id: version
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
       - name: Build with PyInstaller (ONNX profile)
         run: |
           PROFILE=onnx pyinstaller installer/thinking_buildings.spec
@@ -94,7 +112,7 @@ jobs:
       - name: Package as tarball
         run: |
           cd dist
-          tar -czf thinking-buildings-${{ steps.version.outputs.version }}-linux-x86_64.tar.gz thinking-buildings-onnx/
+          tar -czf thinking-buildings-${{ needs.resolve.outputs.version }}-linux-x86_64.tar.gz thinking-buildings-onnx/
 
       - name: Upload Linux build
         uses: actions/upload-artifact@v4
@@ -104,14 +122,10 @@ jobs:
 
   # --- Create GitHub Release ----------------------------------------------
   release:
-    needs: [build-windows, build-linux]
+    needs: [resolve, build-windows, build-linux]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Get version from tag
-        id: version
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -121,9 +135,10 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "Thinking Buildings v${{ steps.version.outputs.version }}"
+          tag_name: "v${{ needs.resolve.outputs.version }}"
+          name: "Thinking Buildings v${{ needs.resolve.outputs.version }}"
           draft: false
-          prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') || contains(github.ref, '-alpha') }}
+          prerelease: ${{ contains(needs.resolve.outputs.version, '-rc') || contains(needs.resolve.outputs.version, '-beta') || contains(needs.resolve.outputs.version, '-alpha') }}
           generate_release_notes: true
           files: |
             artifacts/windows-installer/*
