@@ -5,7 +5,7 @@ camera:
 
 detector:
   model: yolo11n.pt
-  confidence: 0.5
+  confidence: 0.65
   classes:
     - person
     - dog
@@ -25,3 +25,13 @@ display:
 logging:
   level: INFO
   log_file: logs/detections.log
+
+face_recognition:
+  enabled: true
+  db_path: "data/faces.db"
+  faces_dir: "faces/"
+  recognition_threshold: 0.5
+  occlusion_det_threshold: 0.7
+  occlusion_grace_frames: 5
+  model_name: "buffalo_l"
+  det_size: [640, 640]

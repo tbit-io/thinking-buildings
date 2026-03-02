@@ -16,8 +16,9 @@ class CameraConfig:
 @dataclass
 class DetectorConfig:
     model: str = "yolo11n.pt"
-    confidence: float = 0.5
+    confidence: float = 0.65
     classes: List[str] = field(default_factory=lambda: ["person", "dog", "cat", "bird"])
+    backend: str = "auto"
 
 
 @dataclass
@@ -35,6 +36,18 @@ class DisplayConfig:
 
 
 @dataclass
+class FaceRecConfig:
+    enabled: bool = True
+    db_path: str = "data/faces.db"
+    faces_dir: str = "faces/"
+    recognition_threshold: float = 0.5
+    occlusion_det_threshold: float = 0.7
+    occlusion_grace_frames: int = 5
+    model_name: str = "buffalo_l"
+    det_size: Tuple[int, int] = (640, 640)
+
+
+@dataclass
 class LoggingConfig:
     level: str = "INFO"
     log_file: str = "logs/detections.log"
@@ -47,6 +60,7 @@ class AppConfig:
     alerter: AlerterConfig = field(default_factory=AlerterConfig)
     display: DisplayConfig = field(default_factory=DisplayConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
+    face_recognition: FaceRecConfig = field(default_factory=FaceRecConfig)
 
 
 def load_config(path: str = "config.yaml") -> AppConfig:
@@ -68,10 +82,16 @@ def load_config(path: str = "config.yaml") -> AppConfig:
 
     logging_cfg = LoggingConfig(**raw.get("logging", {}))
 
+    face_rec_raw = raw.get("face_recognition", {})
+    if "det_size" in face_rec_raw:
+        face_rec_raw["det_size"] = tuple(face_rec_raw["det_size"])
+    face_rec = FaceRecConfig(**face_rec_raw)
+
     return AppConfig(
         camera=camera,
         detector=detector,
         alerter=alerter,
         display=display,
         logging=logging_cfg,
+        face_recognition=face_rec,
     )

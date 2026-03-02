@@ -8,3 +8,6 @@ build/
 *.pt
 *.onnx
 logs/*.log
+.coverage
+data/
+faces/

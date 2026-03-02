@@ -26,12 +26,14 @@ class Alerter:
     def handle(self, detections: List[Detection]) -> None:
         now = time.time()
         for det in detections:
-            last = self._last_alert.get(det.label, 0)
-            if now - last < self.cooldown:
+            cooldown = self._cooldown_for(det)
+            alert_key = self._alert_key(det)
+            last = self._last_alert.get(alert_key, 0)
+            if now - last < cooldown:
                 continue
 
-            self._last_alert[det.label] = now
-            msg = f"ALERT: {det.label} detected (confidence: {det.confidence:.0%})"
+            self._last_alert[alert_key] = now
+            msg = self._format_alert(det)
             logger.info(msg)
 
             if self._notifier:
@@ -43,3 +45,29 @@ class Alerter:
                     )
                 except Exception:
                     pass
+
+    def _alert_key(self, det: Detection) -> str:
+        if det.identity:
+            return f"{det.label}:{det.identity}"
+        return det.label
+
+    def _cooldown_for(self, det: Detection) -> float:
+        if det.occlusion:
+            return min(15.0, self.cooldown)
+        if det.identity == "unknown_person":
+            return self.cooldown / 2
+        return self.cooldown
+
+    def _format_alert(self, det: Detection) -> str:
+        if det.occlusion:
+            return (
+                f"HIGH ALERT: Occluded/hidden face detected "
+                f"(person confidence: {det.confidence:.0%})"
+            )
+        if det.identity == "unknown_person":
+            conf = f", similarity: {det.face_confidence:.2f}" if det.face_confidence is not None else ""
+            return f"ALERT: Unknown person detected (confidence: {det.confidence:.0%}{conf})"
+        if det.identity and det.identity != "occluded_face":
+            conf = f", similarity: {det.face_confidence:.2f}" if det.face_confidence is not None else ""
+            return f"ALERT: {det.identity} detected (confidence: {det.confidence:.0%}{conf})"
+        return f"ALERT: {det.label} detected (confidence: {det.confidence:.0%})"
