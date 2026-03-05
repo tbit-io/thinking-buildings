@@ -30,7 +30,7 @@ face_recognition:
   enabled: true
   db_path: "data/faces.db"
   faces_dir: "faces/"
-  recognition_threshold: 0.3
+  recognition_threshold: 0.5
   occlusion_det_threshold: 0.7
   occlusion_grace_frames: 5
   model_name: "buffalo_l"

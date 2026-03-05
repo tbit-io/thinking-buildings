@@ -26,11 +26,6 @@ face = [
 gpu = [
     "onnxruntime-gpu>=1.16.0",
 ]
-server = [
-    "fastapi>=0.110.0",
-    "uvicorn>=0.29.0",
-    "python-multipart>=0.0.9",
-]
 build = [
     "pyinstaller>=6.0",
 ]
@@ -44,7 +39,6 @@ dev = [
 
 [project.scripts]
 thinking-buildings = "thinking_buildings.cli:main"
-thinking-buildings-server = "thinking_buildings.server:run"
 
 [tool.hatch.version]
 source = "vcs"
