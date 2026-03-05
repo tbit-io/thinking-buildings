@@ -51,16 +51,10 @@ git clone https://github.com/tbit-io/thinking-buildings.git
 cd thinking-buildings
 python -m venv .venv
 source .venv/bin/activate
-pip install -e ".[dev,server]"
-pip install schedule requests  # for monitoring script
+pip install -e ".[dev]"
 ```
 
-> **Important:** Always activate the virtual environment before running any command:
-> ```bash
-> source .venv/bin/activate
-> ```
-
-### Run (live mode)
+### Run
 
 ```bash
 thinking-buildings       # installed entry point
@@ -70,98 +64,6 @@ python run.py            # direct script (backward compatible)
 ```
 
 The YOLO model downloads automatically on first run to `~/.thinking-buildings/models/`.
-
-### Run (API server)
-
-The server exposes detection, snapshots, face enrollment, and camera monitoring via HTTP.
-
-```bash
-source .venv/bin/activate
-thinking-buildings-server
-# or
-python -m uvicorn thinking_buildings.server:app --reload --port 8700
-```
-
-#### API endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/detect` | Upload an image and run detection + face recognition |
-| `GET` | `/snapshot?camera=sala&detect=true` | Capture a frame from an RTSP camera, optionally run detection |
-| `GET` | `/snapshot/image?camera=sala` | Capture and return the image directly (JPG) |
-| `POST` | `/enroll?name=javier&camera=pc` | Capture a frame and enroll a face |
-| `POST` | `/enroll/upload?name=javier` | Enroll faces from uploaded images (supports multiple files) |
-| `GET` | `/faces` | List all enrolled faces |
-| `DELETE` | `/faces/{name}` | Remove an enrolled face |
-| `GET` | `/cameras` | List available cameras |
-
-#### Examples
-
-```bash
-# Detect objects and faces in an image
-curl -X POST "http://localhost:8700/detect" -F "file=@photo.jpg"
-
-# Take a snapshot from a camera with detection
-curl "http://localhost:8700/snapshot?camera=sala&detect=true"
-
-# Enroll a face from uploaded photos
-curl -X POST "http://localhost:8700/enroll/upload?name=javier" \
-  -F "files=@face1.jpg" -F "files=@face2.jpg" -F "files=@face3.jpg"
-
-# List enrolled faces
-curl http://localhost:8700/faces
-```
-
-### Face enrollment (webcam)
-
-Enroll faces interactively using the webcam. Press SPACE to capture, X to finish.
-
-```bash
-source .venv/bin/activate
-python enroll_face.py javier              # webcam
-python enroll_face.py javier f1.jpg f2.jpg  # from images
-```
-
-Enroll 5-10 photos with different angles (frontal, sides, different lighting) for best recognition.
-
-### Camera monitoring
-
-Monitor cameras on a schedule and save images when person/cat/dog is detected. Requires the server running.
-
-```bash
-# Terminal 1: server
-source .venv/bin/activate
-python -m uvicorn thinking_buildings.server:app --reload --port 8700
-
-# Terminal 2: monitor
-source .venv/bin/activate
-python monitor.py
-```
-
-Prints a `.` for each check, and the full detection when something is found:
-
-```
-........
-[19:41:30] [sala] ['person'] snapshots/sala_20260303_194130.jpg
-....
-```
-
-### RTSP cameras (IP cameras)
-
-Configure RTSP cameras in `thinking_buildings/server.py`:
-
-```python
-RTSP_CAMERAS = {
-    "sala": "rtsp://admin:password@192.168.1.19:554/cam/realmonitor?channel=1&subtype=0",
-    "nvr_ch1": "rtsp://admin:password@192.168.1.14:554/cam/realmonitor?channel=1&subtype=0",
-    "pc": 0,  # local webcam
-}
-```
-
-Dahua/Imou RTSP URL format:
-- `subtype=0` — main stream (high resolution)
-- `subtype=1` — sub stream (lower resolution, less latency)
-- `channel=N` — camera channel on NVR/DVR
 
 ### Configuration
 
@@ -186,10 +88,6 @@ detector:
 alerter:
   cooldown_seconds: 30
   desktop_notifications: true
-
-face_recognition:
-  enabled: true
-  recognition_threshold: 0.3  # cosine similarity for identity match
 ```
 
 ---
@@ -237,12 +135,8 @@ thinking-buildings/
 ├── pyproject.toml                        # Package metadata and dependencies
 ├── config.yaml                           # Runtime configuration
 ├── run.py                                # Backward-compatible entry point
-├── enroll_face.py                        # Face enrollment via webcam or images
-├── monitor.py                            # Camera monitoring cron (schedule)
-├── capture_snapshot.py                   # Standalone RTSP frame capture
 ├── thinking_buildings/
-│   ├── cli.py                            # Main entry point (live mode)
-│   ├── server.py                         # FastAPI server (API mode)
+│   ├── cli.py                            # Main entry point
 │   ├── config.py                         # YAML config loader with dataclasses
 │   ├── events.py                         # Detection dataclass + thread-safe EventBus
 │   ├── capture.py                        # VideoCapture + ThreadedCapture
@@ -341,6 +235,7 @@ We welcome contributions from anywhere in the world. Whether you're a developer,
 
 ### Ideas for contributions
 
+- RTSP support for IP camera streams
 - Telegram/Discord bot subscriber
 - SQLite event logger for detection history
 - MQTT sensor subscriber for IoT integration
