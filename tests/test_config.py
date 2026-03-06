@@ -49,6 +49,46 @@ class TestLoadConfig:
         assert isinstance(cfg, AppConfig)
 
 
+    def test_single_camera_creates_cameras_list(self, tmp_path):
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text(textwrap.dedent("""\
+            camera:
+              source: 2
+              width: 320
+        """))
+        cfg = load_config(str(config_file))
+        assert len(cfg.cameras) == 1
+        assert cfg.cameras[0].source == 2
+        assert cfg.cameras[0].width == 320
+        assert cfg.camera is cfg.cameras[0]
+
+    def test_multi_camera_list(self, tmp_path):
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text(textwrap.dedent("""\
+            cameras:
+              - id: laptop
+                source: 0
+                location: "Office"
+                width: 640
+                height: 480
+              - id: entrance
+                source: "rtsp://192.168.1.10:554/stream"
+                location: "Front door"
+                width: 640
+                height: 360
+        """))
+        cfg = load_config(str(config_file))
+        assert len(cfg.cameras) == 2
+        assert cfg.cameras[0].id == "laptop"
+        assert cfg.cameras[0].source == 0
+        assert cfg.cameras[0].location == "Office"
+        assert cfg.cameras[1].id == "entrance"
+        assert cfg.cameras[1].source == "rtsp://192.168.1.10:554/stream"
+        assert cfg.cameras[1].location == "Front door"
+        # camera (singular) is first camera for backward compat
+        assert cfg.camera is cfg.cameras[0]
+
+
 class TestFaceRecConfigDefaults:
     def test_defaults(self):
         cfg = FaceRecConfig()

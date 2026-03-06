@@ -84,6 +84,34 @@ class TestFormatAlert:
         assert "cat" in msg
 
 
+class TestCameraId:
+    def test_alert_key_includes_camera_id(self):
+        alerter = Alerter(AlerterConfig(desktop_notifications=False))
+        det = _det(camera_id="entrance", identity="john")
+        assert alerter._alert_key(det) == "entrance:person:john"
+
+    def test_alert_key_no_camera_id(self):
+        alerter = Alerter(AlerterConfig(desktop_notifications=False))
+        det = _det(identity="john")
+        assert alerter._alert_key(det) == "person:john"
+
+    def test_format_alert_includes_camera_id(self):
+        alerter = Alerter(AlerterConfig(desktop_notifications=False))
+        det = _det(camera_id="entrance", label="cat")
+        msg = alerter._format_alert(det)
+        assert "[entrance]" in msg
+
+    def test_same_detection_different_cameras_both_alert(self, mocker):
+        alerter = Alerter(AlerterConfig(cooldown_seconds=60, desktop_notifications=False))
+        mocker.patch("thinking_buildings.alerter.logger")
+        det1 = _det(label="dog", camera_id="cam1")
+        det2 = _det(label="dog", camera_id="cam2")
+        alerter.handle([det1])
+        alerter.handle([det2])
+        # Both should alert since they're different cameras
+        assert len(alerter._last_alert) == 2
+
+
 class TestHandle:
     def test_respects_cooldown(self, mocker):
         alerter = Alerter(AlerterConfig(cooldown_seconds=60, desktop_notifications=False))

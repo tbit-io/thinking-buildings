@@ -2,14 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import yaml
 
 
 @dataclass
 class CameraConfig:
-    source: int = 0
+    id: str = "default"
+    source: Union[int, str] = 0
+    location: str = ""
     width: int = 1280
     height: int = 720
 
@@ -57,6 +59,7 @@ class LoggingConfig:
 @dataclass
 class AppConfig:
     camera: CameraConfig = field(default_factory=CameraConfig)
+    cameras: List[CameraConfig] = field(default_factory=list)
     detector: DetectorConfig = field(default_factory=DetectorConfig)
     alerter: AlerterConfig = field(default_factory=AlerterConfig)
     display: DisplayConfig = field(default_factory=DisplayConfig)
@@ -72,7 +75,14 @@ def load_config(path: str = "config.yaml") -> AppConfig:
     with open(config_path) as f:
         raw = yaml.safe_load(f) or {}
 
-    camera = CameraConfig(**raw.get("camera", {}))
+    # Multi-camera: prefer 'cameras' list, fall back to single 'camera'
+    cameras_raw = raw.get("cameras", [])
+    if cameras_raw:
+        cameras = [CameraConfig(**c) for c in cameras_raw]
+    else:
+        cameras = [CameraConfig(**raw.get("camera", {}))]
+    camera = cameras[0]
+
     detector = DetectorConfig(**raw.get("detector", {}))
     alerter = AlerterConfig(**raw.get("alerter", {}))
 
@@ -90,6 +100,7 @@ def load_config(path: str = "config.yaml") -> AppConfig:
 
     return AppConfig(
         camera=camera,
+        cameras=cameras,
         detector=detector,
         alerter=alerter,
         display=display,

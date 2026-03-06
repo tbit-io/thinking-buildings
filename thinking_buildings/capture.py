@@ -16,20 +16,29 @@ logger = logging.getLogger("thinking_buildings")
 class VideoCapture:
     def __init__(self, cfg: CameraConfig) -> None:
         source = auto_select_camera(cfg)
-        backend = self._pick_backend()
-        if backend is not None:
-            self.cap = cv2.VideoCapture(source, backend)
-        else:
-            self.cap = cv2.VideoCapture(source)
-        self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
+        self._is_rtsp = isinstance(source, str) and source.startswith("rtsp://")
 
-        actual_w, actual_h = negotiate_resolution(
-            self.cap, (cfg.width, cfg.height)
-        )
-        logger.info("Camera resolution: %dx%d", actual_w, actual_h)
+        if self._is_rtsp:
+            self.cap = cv2.VideoCapture(source)
+        else:
+            backend = self._pick_backend()
+            if backend is not None:
+                self.cap = cv2.VideoCapture(source, backend)
+            else:
+                self.cap = cv2.VideoCapture(source)
+            self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 
         if not self.cap.isOpened():
             raise RuntimeError(f"Cannot open camera source {source}")
+
+        if self._is_rtsp:
+            actual_w = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            actual_h = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        else:
+            actual_w, actual_h = negotiate_resolution(
+                self.cap, (cfg.width, cfg.height)
+            )
+        logger.info("Camera resolution: %dx%d", actual_w, actual_h)
 
     @staticmethod
     def _pick_backend() -> int | None:

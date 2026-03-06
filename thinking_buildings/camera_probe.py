@@ -63,8 +63,10 @@ def negotiate_resolution(
     return (actual_w, actual_h)
 
 
-def auto_select_camera(cfg: CameraConfig) -> int:
-    """Return camera index. If source == -1, auto-detect first available."""
+def auto_select_camera(cfg: CameraConfig) -> int | str:
+    """Return camera index or RTSP URL. If source == -1, auto-detect first available."""
+    if isinstance(cfg.source, str):
+        return cfg.source
     if cfg.source != -1:
         return cfg.source
     available = enumerate_cameras()

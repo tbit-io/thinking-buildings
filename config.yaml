@@ -1,7 +1,17 @@
-camera:
-  source: 0
-  width: 640
-  height: 480
+cameras:
+  - id: laptop
+    source: 0
+    location: "Office desk"
+    width: 640
+    height: 480
+
+  - id: steren_entrance
+    # Sub stream (640x360) for real-time processing
+    # Main stream (2560x1440): rtsp://192.168.2.35:5543/9afd2538e1f758b0f7d41b632b757aa3/live/channel0
+    source: "rtsp://192.168.2.35:5543/9afd2538e1f758b0f7d41b632b757aa3/live/channel1"
+    location: "Front entrance"
+    width: 640
+    height: 360
 
 detector:
   model: yolo11n.pt
