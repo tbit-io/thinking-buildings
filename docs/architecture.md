@@ -318,10 +318,11 @@ This is searchable, reviewable, and far more useful than 5 minutes of continuous
 - EventBus architecture, threaded capture
 - Package distribution (pip, installers, CI/CD)
 
-### Phase 4: Server Foundation
+### Phase 4: Server Foundation (in progress)
 - [ ] FastAPI server with proper config-driven architecture
-- [ ] RTSP camera integration via config (no hardcoded credentials)
-- [ ] Camera registry in config.yaml
+- [x] RTSP camera integration via config (no hardcoded credentials)
+- [x] Camera registry in config.yaml (multi-camera `cameras:` list with id, source, location)
+- [x] Multi-camera pipeline (per-camera capture threads, display windows, alert cooldowns)
 - [ ] Detection API endpoints (detect, snapshot, enroll)
 - [ ] Server optional dependencies and entry point
 - [ ] Tests for all server endpoints
