@@ -11,6 +11,7 @@ class Detection:
     confidence: float
     bbox: Tuple[int, int, int, int]  # x1, y1, x2, y2
     timestamp: float
+    camera_id: str = ""
     identity: Optional[str] = None
     face_confidence: Optional[float] = None
     face_bbox: Optional[Tuple[int, int, int, int]] = None

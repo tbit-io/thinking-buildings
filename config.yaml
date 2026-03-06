@@ -1,7 +1,16 @@
-camera:
-  source: 0
-  width: 640
-  height: 480
+cameras:
+  - id: laptop
+    source: 0
+    location: "Office desk"
+    width: 640
+    height: 480
+
+  # Example RTSP camera (uncomment and set your URL):
+  # - id: entrance
+  #   source: "rtsp://<ip>:<port>/<path>"
+  #   location: "Front entrance"
+  #   width: 640
+  #   height: 360
 
 detector:
   model: yolo11n.pt

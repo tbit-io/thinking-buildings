@@ -42,11 +42,16 @@ def main() -> None:
     alerter = Alerter(cfg.alerter)
     event_bus.subscribe(alerter.handle)
 
-    display = Display(cfg.display) if cfg.display.show_window else None
-    if display:
-        event_bus.subscribe(display.handle)
+    # Set up captures and displays for each camera
+    captures: dict[str, ThreadedCapture] = {}
+    displays: dict[str, Display] = {}
+    for cam_cfg in cfg.cameras:
+        cam_id = cam_cfg.id
+        logger.info("Starting camera '%s' (source: %s)", cam_id, cam_cfg.source)
+        captures[cam_id] = ThreadedCapture(cam_cfg).start()
+        if cfg.display.show_window:
+            displays[cam_id] = Display(cfg.display)
 
-    capture = ThreadedCapture(cfg.camera).start()
     detector = Detector(cfg.detector)
 
     face_recognizer = None
@@ -55,23 +60,42 @@ def main() -> None:
         face_recognizer = FaceRecognizer(cfg.face_recognition)
         face_recognizer.enroll_from_directory(cfg.face_recognition.faces_dir)
 
-    logger.info("Pipeline ready — press 'q' to quit")
+    logger.info(
+        "Pipeline ready — %d camera(s) — press 'q' to quit", len(captures)
+    )
 
     frame_count = 0
     fps_start = time.monotonic()
     FPS_LOG_INTERVAL = 10.0
+    quit_requested = False
 
     try:
-        while True:
-            frame = capture.read()
-            if frame is None:
-                time.sleep(0.001)
-                continue
+        while not quit_requested:
+            any_frame = False
+            for cam_id, capture in captures.items():
+                frame = capture.read()
+                if frame is None:
+                    continue
 
-            detections = detector.detect(frame)
-            if face_recognizer:
-                detections = face_recognizer.recognize(frame, detections)
-            event_bus.publish(detections)
+                any_frame = True
+                detections = detector.detect(frame)
+                if face_recognizer:
+                    detections = face_recognizer.recognize(frame, detections)
+                for det in detections:
+                    det.camera_id = cam_id
+                event_bus.publish(detections)
+
+                if cam_id in displays:
+                    display = displays[cam_id]
+                    display.handle(detections)
+                    frame = display.render(frame)
+                    key = display.show(frame, window_name=cam_id)
+                    if key == ord("q"):
+                        quit_requested = True
+                        break
+
+            if not any_frame:
+                time.sleep(0.001)
 
             frame_count += 1
             elapsed = time.monotonic() - fps_start
@@ -79,20 +103,15 @@ def main() -> None:
                 logger.info("Pipeline throughput: %.1f FPS", frame_count / elapsed)
                 frame_count = 0
                 fps_start = time.monotonic()
-
-            if display:
-                frame = display.render(frame)
-                key = display.show(frame)
-                if key == ord("q"):
-                    break
     except KeyboardInterrupt:
         logger.info("Interrupted by user")
     finally:
-        capture.release()
+        for capture in captures.values():
+            capture.release()
         if face_recognizer:
             face_recognizer.close()
-        if display:
-            display.cleanup()
+        if displays:
+            Display.cleanup()
         logger.info("Shutdown complete")
 
 

@@ -78,3 +78,8 @@ class TestAutoSelectCamera:
         cfg = CameraConfig(source=-1)
         with pytest.raises(RuntimeError, match="No cameras found"):
             auto_select_camera(cfg)
+
+    def test_rtsp_url_passthrough(self):
+        url = "rtsp://192.168.2.35:5543/live/channel0"
+        cfg = CameraConfig(source=url)
+        assert auto_select_camera(cfg) == url

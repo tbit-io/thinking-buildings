@@ -47,9 +47,10 @@ class Alerter:
                     pass
 
     def _alert_key(self, det: Detection) -> str:
+        prefix = f"{det.camera_id}:" if det.camera_id else ""
         if det.identity:
-            return f"{det.label}:{det.identity}"
-        return det.label
+            return f"{prefix}{det.label}:{det.identity}"
+        return f"{prefix}{det.label}"
 
     def _cooldown_for(self, det: Detection) -> float:
         if det.occlusion:
@@ -59,15 +60,16 @@ class Alerter:
         return self.cooldown
 
     def _format_alert(self, det: Detection) -> str:
+        cam = f"[{det.camera_id}] " if det.camera_id else ""
         if det.occlusion:
             return (
-                f"HIGH ALERT: Occluded/hidden face detected "
+                f"{cam}HIGH ALERT: Occluded/hidden face detected "
                 f"(person confidence: {det.confidence:.0%})"
             )
         if det.identity == "unknown_person":
             conf = f", similarity: {det.face_confidence:.2f}" if det.face_confidence is not None else ""
-            return f"ALERT: Unknown person detected (confidence: {det.confidence:.0%}{conf})"
+            return f"{cam}ALERT: Unknown person detected (confidence: {det.confidence:.0%}{conf})"
         if det.identity and det.identity != "occluded_face":
             conf = f", similarity: {det.face_confidence:.2f}" if det.face_confidence is not None else ""
-            return f"ALERT: {det.identity} detected (confidence: {det.confidence:.0%}{conf})"
-        return f"ALERT: {det.label} detected (confidence: {det.confidence:.0%})"
+            return f"{cam}ALERT: {det.identity} detected (confidence: {det.confidence:.0%}{conf})"
+        return f"{cam}ALERT: {det.label} detected (confidence: {det.confidence:.0%})"

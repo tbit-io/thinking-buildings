@@ -73,8 +73,8 @@ class Display:
         return f"{det.label} {det.confidence:.0%}"
 
     @staticmethod
-    def show(frame: np.ndarray) -> int:
-        cv2.imshow("Thinking Buildings", frame)
+    def show(frame: np.ndarray, window_name: str = "Thinking Buildings") -> int:
+        cv2.imshow(window_name, frame)
         return cv2.waitKey(1) & 0xFF
 
     @staticmethod
