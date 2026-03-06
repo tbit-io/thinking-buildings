@@ -25,19 +25,19 @@ Cameras → Client App ── internet ──>          YOLO (heavy model) triag
                                                 narrative logs
 ```
 
-### Current Codebase (Phase 1-3, local pipeline)
+### Current Codebase (Phase 4, multi-camera pipeline)
 
 ```
-Camera → ThreadedCapture → Detector (backend abstraction) → EventBus → Subscribers
-                                                                ├── Alerter (console/desktop/log)
-                                                                ├── Display (bounding boxes + FPS)
-                                                                └── FaceRecognizer (known/unknown/occluded)
+Cameras (webcam + RTSP) → ThreadedCapture (per camera) → Detector → EventBus → Subscribers
+                                                                        ├── Alerter (per-camera cooldowns)
+                                                                        ├── Display (per-camera windows)
+                                                                        └── FaceRecognizer (known/unknown/occluded)
 ```
 
 ## Project Structure
 
 - `pyproject.toml` — Package metadata, deps, entry points (hatchling + hatch-vcs)
-- `config.yaml` — Runtime configuration (all config here, not in code)
+- `config.yaml` — Runtime configuration (multi-camera `cameras:` list, all config here, not in code)
 - `docs/architecture.md` — Full system architecture and roadmap
 - `run.py` — Backward-compatible entry point (shim to `cli.main()`)
 - `thinking_buildings/cli.py` — Main entry point with `ThreadedCapture`
@@ -53,7 +53,7 @@ Camera → ThreadedCapture → Detector (backend abstraction) → EventBus → S
 - `thinking_buildings/model_manager.py` — Model download + cache (`~/.thinking-buildings/models/`)
 - `thinking_buildings/logger_setup.py` — Logging configuration
 - `thinking_buildings/backends/` — Inference backend abstraction (base, ultralytics, factory)
-- `tests/` — 92 tests
+- `tests/` — 99 tests
 
 ## Running
 
@@ -110,7 +110,7 @@ python run.py            # backward compatible
 | Phase | Status | Focus |
 |-------|--------|-------|
 | 1-3 | Done | Local pipeline, face rec, distribution, CI/CD |
-| 4 | Next | Server foundation (FastAPI, RTSP config, camera registry) |
+| 4 | **In progress** | Server foundation — RTSP + multi-camera done, FastAPI + API next |
 | 5 | Planned | Client application (capture daemon, frame buffer, transport) |
 | 6 | Planned | Perception layer (heavy YOLO, GPU batching, triage) |
 | 7 | Planned | Thought layer (LLM integration, building knowledge, decisions) |
